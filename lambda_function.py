@@ -4,7 +4,10 @@ from __future__ import print_function
 
 from random import shuffle
 
+import boto3
+
 appName = "Aikido Koeln Pruefungs-Trainer"
+
 terms = {
     ### MISC ###
     '': {
@@ -495,17 +498,12 @@ def default_reply():
     return build_response(sessionAttributes, build_speechlet_response( \
                             output, reprompt_text, should_end_session))
 
-def welcome_reply():
-    
-    """
-    output = 'Willkommen, ich bin der ' + appName + ' ...' \
-                'Sag mir fuer welchen Kyu du ueben moechtest oder ' \
-                'frage mich nach einer zufaelligen Technik'
-    """
-    output = "Onagaeschi mass"
+def welcome_reply(user):
+
+    output = "Onagaeschi mass, " + user['name']
     
     reprompt_text = 'TODO'
-    sessionAttributes = {}
+    sessionAttributes = {'user': user}
     should_end_session = False
     return build_response(sessionAttributes, build_speechlet_response( \
                         output, reprompt_text, should_end_session))
@@ -542,7 +540,7 @@ def random_technique(session, number=1):
     return build_response(sessionAttributes, build_speechlet_response( \
                             output, reprompt_text, should_end_session))
     
-def set_level(intent):
+def set_level(intent, session):
     
     levelNames = ['ersten', 'zweiten', 'dritten', 'vierten', 'fuenften']
     
@@ -566,13 +564,30 @@ def set_level(intent):
 
 def lambda_handler(event, context):
     print(event)
+    
+    ddb = boto3.resource('dynamodb')
+    user_tab = ddb.Table('aikido_users')
+    
+    userId = event['session']['user']['userId']
+    print(userId)
+    
+    try:
+        user = user_tab.get_item(Key = {'userId': userId})['Item']
+    except:
+        print('Database error: Could not find user ' + userId)
+        user = {'id': '-1', 'name': 'Unbekannter'}
 
+    print(user)
+
+    #if 'session' in event and 'attributes' in event['session']:
+    #    event['session']['attributes']['user'] = user
+    
     #event['session']['new'] 
     if event['request']['type'] == "LaunchRequest":
-        return welcome_reply()
+        return welcome_reply(user)
     elif event['request']['type'] == "IntentRequest":
         if event['request']['intent']['name'] == 'levelSetzen':
-            return set_level(event['request']['intent'])
+            return set_level(event['request']['intent'], event['session'])
         elif event['request']['intent']['name'] == 'technik':
             return random_technique(event['session'])
     else:
