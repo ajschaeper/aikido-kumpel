@@ -510,6 +510,17 @@ def welcome_reply(user):
     return build_response(sessionAttributes, build_speechlet_response( \
                         output, card_text, reprompt_text, should_end_session))
 
+def leave_reply():
+
+    output = "Dohmo arigatoh"
+    card_text = "Domo arigato gozaimasu"
+    
+    reprompt_text = 'TODO'
+    sessionAttributes = {}
+    should_end_session = True
+    return build_response(sessionAttributes, build_speechlet_response( \
+                        output, card_text, reprompt_text, should_end_session))
+
 def random_technique(session, user, number=1):
     
     if 'gradeLevel' in user:
@@ -536,7 +547,6 @@ def random_technique(session, user, number=1):
     card_text = ''
     
     for t in enumerate(test_techniques_set):
-        #remove [:-1] to encorporate
         output += ' '.join(map(lambda x: terms[x]['speak'], t[1][:tmpEnd])) + '... '
         card_text += ' '.join(t[1][:tmpEnd]) + '\n '
     
@@ -605,10 +615,10 @@ def lambda_handler(event, context):
             return set_level(event['request']['intent'], event['session'], user, user_tab)
         elif event['request']['intent']['name'] == 'technik':
             return random_technique(event['session'], user)
+        elif event['request']['intent']['name'] == 'AMAZON.StopIntent':
+            return leave_reply()
+    elif event['request']['type'] == "SessionEndRequest":
+        return leave_reply()
     else:
         return default_reply()
     
-"""      
-    elif event['request']['type'] == "SessionEndRequest":
-        return default_reply
-"""
