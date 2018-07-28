@@ -6,7 +6,7 @@ from random import shuffle
 
 import boto3
 
-appName = "Aikido Koeln Pruefungs-Trainer"
+appName = "Aikido Koeln Pruefung Trainer"
 
 terms = {
     ### MISC ###
@@ -508,19 +508,22 @@ def welcome_reply(user):
     return build_response(sessionAttributes, build_speechlet_response( \
                         output, reprompt_text, should_end_session))
 
-def random_technique(session, number=1):
+def random_technique(session, user, number=1):
 
-    print(session)
-
+    """
     if 'attributes' in session and 'level' in session['attributes']:
         level = session['attributes']['level']
     else:
         #TODO: Set less selfish default :-)
         level = 2
-        session['attributes'] = {}
-
-    print(level)
-
+        session['attributes'] = {} 
+    """
+    
+    if 'gradeLevel' in user:
+        level = int(user['gradeLevel'])
+    else:
+        level = 5
+    
     test_set = range(test_techniques[level-1][0], test_techniques[level-1][1])
     test_length = min(number, len(test_set))
     shuffle(test_set)
@@ -540,7 +543,7 @@ def random_technique(session, number=1):
     return build_response(sessionAttributes, build_speechlet_response( \
                             output, reprompt_text, should_end_session))
     
-def set_level(intent, session):
+def set_level(intent, session, user, user_tab):
     
     levelNames = ['ersten', 'zweiten', 'dritten', 'vierten', 'fuenften']
     
@@ -548,7 +551,18 @@ def set_level(intent, session):
     
     if intent['slots']['level']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] == "ER_SUCCESS_MATCH":
         level = int(intent['slots']['level']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['id'])
-        print(level)
+        user_tab.update_item(
+            Key={
+                'userId': user['userId']
+            },
+            UpdateExpression="set gradeLevel = :l",
+            ExpressionAttributeValues={
+                ':l': level
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        
+        
         output = 'Du uebst nun fuer den ' + levelNames[level-1] + ' Kyu.'
     else:
         output = 'Ich konnte leider nicht verstehen, fuer welchen Kyu du ueben moechtest' \
@@ -563,13 +577,13 @@ def set_level(intent, session):
     
 
 def lambda_handler(event, context):
+
     print(event)
     
+    userId = event['session']['user']['userId']
+
     ddb = boto3.resource('dynamodb')
     user_tab = ddb.Table('aikido_users')
-    
-    userId = event['session']['user']['userId']
-    print(userId)
     
     try:
         user = user_tab.get_item(Key = {'userId': userId})['Item']
@@ -578,18 +592,15 @@ def lambda_handler(event, context):
         user = {'id': '-1', 'name': 'Unbekannter'}
 
     print(user)
-
-    #if 'session' in event and 'attributes' in event['session']:
-    #    event['session']['attributes']['user'] = user
     
     #event['session']['new'] 
     if event['request']['type'] == "LaunchRequest":
         return welcome_reply(user)
     elif event['request']['type'] == "IntentRequest":
         if event['request']['intent']['name'] == 'levelSetzen':
-            return set_level(event['request']['intent'], event['session'])
+            return set_level(event['request']['intent'], event['session'], user, user_tab)
         elif event['request']['intent']['name'] == 'technik':
-            return random_technique(event['session'])
+            return random_technique(event['session'], user)
     else:
         return default_reply()
     
