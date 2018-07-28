@@ -464,7 +464,7 @@ test_techniques = [
     [0, 11]
 ]
 
-def build_speechlet_response(output, repromt_text, should_end_session): 
+def build_speechlet_response(output, card_text, repromt_text, should_end_session): 
      return {
         'outputSpeech': {
             'type': 'PlainText',
@@ -473,7 +473,7 @@ def build_speechlet_response(output, repromt_text, should_end_session):
         'card': {
             'type': 'Simple',
             'title': appName,
-            'content': output
+            'content': card_text
         },
         'reprompt': {
             'type': 'PlainText',
@@ -492,37 +492,37 @@ def build_response(sessionAttributes, speechlet_response):
 def default_reply():
     
     output = 'Entschuldige, das kann ich noch nicht...'
+    card_text = output
     reprompt_text = 'TODO'
     sessionAttributes = {}
     should_end_session = False
     return build_response(sessionAttributes, build_speechlet_response( \
-                            output, reprompt_text, should_end_session))
+                            output, card_text, reprompt_text, should_end_session))
 
 def welcome_reply(user):
 
     output = "Onagaeschi mass, " + user['name']
+    card_text = "Onegaishimasu, " + user['name']
     
     reprompt_text = 'TODO'
     sessionAttributes = {'user': user}
     should_end_session = False
     return build_response(sessionAttributes, build_speechlet_response( \
-                        output, reprompt_text, should_end_session))
+                        output, card_text, reprompt_text, should_end_session))
 
 def random_technique(session, user, number=1):
-
-    """
-    if 'attributes' in session and 'level' in session['attributes']:
-        level = session['attributes']['level']
-    else:
-        #TODO: Set less selfish default :-)
-        level = 2
-        session['attributes'] = {} 
-    """
     
     if 'gradeLevel' in user:
         level = int(user['gradeLevel'])
     else:
         level = 5
+    
+    omoteUraMode = False
+    
+    if omoteUraMode:
+        tmpEnd = 4    
+    else:
+        tmpEnd = -1
     
     test_set = range(test_techniques[level-1][0], test_techniques[level-1][1])
     test_length = min(number, len(test_set))
@@ -533,15 +533,18 @@ def random_technique(session, user, number=1):
     test_techniques_set = map(techniques.__getitem__, test_set)
     
     output = ''
+    card_text = ''
     
     for t in enumerate(test_techniques_set):
-        output += ' '.join(map(lambda x: terms[x]['speak'], t[1])) + '... '
+        #remove [:-1] to encorporate
+        output += ' '.join(map(lambda x: terms[x]['speak'], t[1][:tmpEnd])) + '... '
+        card_text += ' '.join(t[1][:tmpEnd]) + '\n '
     
     reprompt_text = 'TODO'
-    sessionAttributes = session['attributes']
+    sessionAttributes = {}
     should_end_session = False
     return build_response(sessionAttributes, build_speechlet_response( \
-                            output, reprompt_text, should_end_session))
+                            output, card_text, reprompt_text, should_end_session))
     
 def set_level(intent, session, user, user_tab):
     
@@ -569,11 +572,12 @@ def set_level(intent, session, user, user_tab):
                     'Ich unterstuetze dich vom fuenften bis zum ersten Kyu' \
                     'Sag zum Beispiel: Ich moechte fuer den fuenften Kyu ueben'
     
+    card_text = output
     reprompt_text = 'TODO'
     sessionAttributes = {'level': level}
     should_end_session = False
     return build_response(sessionAttributes, build_speechlet_response( \
-                        output, reprompt_text, should_end_session))
+                        output, card_text, reprompt_text, should_end_session))
     
 
 def lambda_handler(event, context):
