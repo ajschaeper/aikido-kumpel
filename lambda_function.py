@@ -1,4 +1,4 @@
-"""Test Comment"""
+# -*- coding: utf-8 -*-
  
 from __future__ import print_function
 
@@ -6,7 +6,7 @@ from random import shuffle
 
 import boto3
 
-appName = u'Aikido Koeln Pruefung Trainer'
+appName = 'Aikido Köln Prüfungstrainer'
 
 terms = {
     ### MISC ###
@@ -632,12 +632,13 @@ def set_level(intent, user, user_tab):
         
         
         output = 'Du uebst nun fuer den ' + levelNames[level-1] + ' Kyu.'
+        card_text = 'Du übst nun für den ' + levelNames[level-1] + ' Kyu.'
     else:
-        output = 'Ich konnte leider nicht verstehen, fuer welchen Kyu du ueben moechtest' \
-                    'Ich unterstuetze dich vom fuenften bis zum ersten Kyu' \
-                    'Sag zum Beispiel: Ich moechte fuer den fuenften Kyu ueben'
-    
-    card_text = output
+        output = 'Ich konnte leider nicht verstehen, fuer welchen Kyu du üben möchtest' \
+                    'Ich unterstuetze dich vom fünften bis zum ersten Kyu' \
+                    'Sag zum Beispiel: Ich möchte für den dritten Kyu üben'
+        card_text = 'TODO'
+
     reprompt_text = 'TODO'
     sessionAttributes = {'level': level}
     should_end_session = False
