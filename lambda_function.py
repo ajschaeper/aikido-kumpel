@@ -6,7 +6,7 @@ from random import shuffle
 
 import boto3
 
-appName = "Aikido Koeln Pruefung Trainer"
+appName = u'Aikido Koeln Pruefung Trainer'
 
 terms = {
     ### MISC ###
@@ -521,13 +521,15 @@ def leave_reply():
     return build_response(sessionAttributes, build_speechlet_response( \
                         output, card_text, reprompt_text, should_end_session))
 
-def random_technique(session, user, number=1):
+def random_technique(user, user_tab, number=1):
     
+    #set level by user profile
     if 'gradeLevel' in user:
         level = int(user['gradeLevel'])
     else:
         level = 5
     
+    #decide whether omote/ura does matter
     omoteUraMode = False
     
     if omoteUraMode:
@@ -535,32 +537,85 @@ def random_technique(session, user, number=1):
     else:
         tmpEnd = -1
     
+    #make list of random techniques from curriculum
     test_set = range(test_techniques[level-1][0], test_techniques[level-1][1])
     test_length = min(number, len(test_set))
     shuffle(test_set)
-        
     test_set = test_set[0:test_length]
-
     test_techniques_set = map(techniques.__getitem__, test_set)
+
+    #store last technique
+    last_technique = []
     
+    #generate output: plain names for card_text and the 'speak' version for voice output
     output = ''
     card_text = ''
-    
+
     for t in enumerate(test_techniques_set):
         output += ' '.join(map(lambda x: terms[x]['speak'], t[1][:tmpEnd])) + '... '
         card_text += ' '.join(t[1][:tmpEnd]) + '\n '
+        last_technique = t[1]
+    
+    #store last technique in db
+    user_tab.update_item(
+        Key={
+            'userId': user['userId']
+        },
+        UpdateExpression='set lastTechnique = :t',
+        ExpressionAttributeValues={
+            ':t': last_technique
+        },
+        ReturnValues='UPDATED_NEW'
+        )
     
     reprompt_text = 'TODO'
     sessionAttributes = {}
     should_end_session = False
     return build_response(sessionAttributes, build_speechlet_response( \
                             output, card_text, reprompt_text, should_end_session))
+                            
+                            
+def repeat_technique(user, user_tab):
+    output = ''
+    card_text = ''
+
+    #decide whether omote/ura does matter
+    omoteUraMode = False
     
-def set_level(intent, session, user, user_tab):
+    if omoteUraMode:
+        tmpEnd = 4    
+    else:
+        tmpEnd = -1
+    
+    #store last technique in db
+    try:
+        res = user_tab.get_item(
+            Key={
+                'userId': user['userId']
+            }
+        )
+    except:
+        print('Could not find profile of user ' + user['userId'])
+ 
+    if 'Item' in res and 'lastTechnique' in res['Item']:
+        last_technique = res['Item']['lastTechnique'][:tmpEnd]
+        print('output: ' + output)
+        output = ' '.join(map(lambda x: terms[x]['speak'], last_technique)) + '... '
+        card_text = ' '.join(last_technique)
+    else:
+        last_technique = 'unbekannte Technik'
+        output = last_technique
+        card_text = lastTechnique
+
+    reprompt_text = 'TODO'
+    sessionAttributes = {}
+    should_end_session = False
+    return build_response(sessionAttributes, build_speechlet_response( \
+                            output, card_text, reprompt_text, should_end_session))
+    
+def set_level(intent, user, user_tab):
     
     levelNames = ['ersten', 'zweiten', 'dritten', 'vierten', 'fuenften']
-    
-    print(intent['slots']['level']['resolutions']['resolutionsPerAuthority'][0])
     
     if intent['slots']['level']['resolutions']['resolutionsPerAuthority'][0]['status']['code'] == "ER_SUCCESS_MATCH":
         level = int(intent['slots']['level']['resolutions']['resolutionsPerAuthority'][0]['values'][0]['value']['id'])
@@ -568,11 +623,11 @@ def set_level(intent, session, user, user_tab):
             Key={
                 'userId': user['userId']
             },
-            UpdateExpression="set gradeLevel = :l",
+            UpdateExpression='set gradeLevel = :l',
             ExpressionAttributeValues={
                 ':l': level
             },
-            ReturnValues="UPDATED_NEW"
+            ReturnValues='UPDATED_NEW'
         )
         
         
@@ -612,11 +667,15 @@ def lambda_handler(event, context):
         return welcome_reply(user)
     elif event['request']['type'] == "IntentRequest":
         if event['request']['intent']['name'] == 'levelSetzen':
-            return set_level(event['request']['intent'], event['session'], user, user_tab)
+            return set_level(event['request']['intent'], user, user_tab)
         elif event['request']['intent']['name'] == 'technik':
-            return random_technique(event['session'], user)
+            return random_technique(user, user_tab)
+        elif event['request']['intent']['name'] == 'wiederholen':
+            return repeat_technique(user, user_tab)
         elif event['request']['intent']['name'] == 'AMAZON.StopIntent':
             return leave_reply()
+        else:
+            return default_reply()
     elif event['request']['type'] == "SessionEndRequest":
         return leave_reply()
     else:
