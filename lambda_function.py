@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
  
+#compatibility with Python 3 (so they say...)
 from __future__ import print_function
 
+#to get randomness
 from random import shuffle
 
+#to make DynamoDB calls
 import boto3
+
+#to set timestamps
+from datetime import datetime
+
+
 
 appName = 'Aikido Köln Prüfungstrainer'
 
@@ -499,13 +507,13 @@ def default_reply():
     return build_response(sessionAttributes, build_speechlet_response( \
                             output, card_text, reprompt_text, should_end_session))
 
-def welcome_reply(user):
+def welcome_reply():
 
-    output = "Onagaeschi mass, " + user['name']
-    card_text = "Onegaishimasu, " + user['name']
+    output = "Onagaeschi mass"
+    card_text = "Onegaishimasu!"
     
     reprompt_text = 'TODO'
-    sessionAttributes = {'user': user}
+    sessionAttributes = {}
     should_end_session = False
     return build_response(sessionAttributes, build_speechlet_response( \
                         output, card_text, reprompt_text, should_end_session))
@@ -655,17 +663,35 @@ def lambda_handler(event, context):
     ddb = boto3.resource('dynamodb')
     user_tab = ddb.Table('aikido_users')
     
+    #get userId
     try:
         user = user_tab.get_item(Key = {'userId': userId})['Item']
     except:
         print('Database error: Could not find user ' + userId)
         user = {'id': '-1', 'name': 'Unbekannter'}
 
+    #update lastUsed to delete obsolete accounts
+    currentTimestamp = datetime.utcnow().isoformat()
+    try:
+        user_tab.update_item(
+            Key={
+                'userId': user['userId']
+            },
+            UpdateExpression='set lastUsed = :t',
+            ExpressionAttributeValues={
+                ':t': currentTimestamp
+                },
+            ReturnValues='UPDATED_NEW'
+        )
+    except:
+        print('Database error: Could not update lastUsed')
+            
+
     print(user)
     
     #event['session']['new'] 
     if event['request']['type'] == "LaunchRequest":
-        return welcome_reply(user)
+        return welcome_reply()
     elif event['request']['type'] == "IntentRequest":
         if event['request']['intent']['name'] == 'levelSetzen':
             return set_level(event['request']['intent'], user, user_tab)
