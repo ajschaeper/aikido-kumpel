@@ -1,0 +1,125 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "aikido",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "technik",
+                    "slots": [],
+                    "samples": [
+                        "gib mir eine Technik",
+                        "Nöchste Technik",
+                        "LAss uns weiter machen",
+                        "Eine weitere Technik",
+                        "Weiter"
+                    ]
+                },
+                {
+                    "name": "levelSetzen",
+                    "slots": [
+                        {
+                            "name": "level",
+                            "type": "kyuGrade"
+                        }
+                    ],
+                    "samples": [
+                        "Ich trainiere für den {level} Kyu",
+                        "Wir trainieren für den {level} Kyu",
+                        "Für Kyu Nummer {level}",
+                        "Für den {level}",
+                        "{level} Kyu"
+                    ]
+                },
+                {
+                    "name": "wiederholen",
+                    "slots": [],
+                    "samples": [
+                        "Welche Technik üben wir nochmal",
+                        "Nochmal bitte",
+                        "Könntest du die letzte Technik nochmal wiederholen",
+                        "Häh",
+                        "Wiederhol das bitte",
+                        "Das habe ich nicht verstanden",
+                        "Bitte nochmal",
+                        "Wie war das",
+                        "Könntest du das nochmal wiederholen"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "kyuGrade",
+                    "values": [
+                        {
+                            "id": "1",
+                            "name": {
+                                "value": "Ersten",
+                                "synonyms": [
+                                    "Ersten",
+                                    "Erster",
+                                    "Eins"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "2",
+                            "name": {
+                                "value": "Zweiten",
+                                "synonyms": [
+                                    "Zweiten",
+                                    "Zweiter",
+                                    "Zwei"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "3",
+                            "name": {
+                                "value": "Dritten",
+                                "synonyms": [
+                                    "Dritten",
+                                    "Dritter",
+                                    "Drei"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "4",
+                            "name": {
+                                "value": "Vierten",
+                                "synonyms": [
+                                    "Vierten",
+                                    "Vierter",
+                                    "Vier"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "5",
+                            "name": {
+                                "value": "Fünften",
+                                "synonyms": [
+                                    "Fuenften",
+                                    "Fünfter",
+                                    "Fünf"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
