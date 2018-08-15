@@ -12,8 +12,6 @@ import boto3
 #to set timestamps
 from datetime import datetime
 
-
-
 appName = 'Aikido Köln Prüfungstrainer'
 
 terms = {
@@ -529,6 +527,24 @@ def leave_reply():
     return build_response(sessionAttributes, build_speechlet_response( \
                         output, card_text, reprompt_text, should_end_session))
 
+def help_reply():
+    
+    output = 'Ich helfe dir gerne bei der Vorbereitung für deine naechste Kyu-Pruefung,  \
+            indem ich dir zufaellig Techniken aus der Pruefungsordnung ansage... \
+            Am besten sagst du mir gleich, für welchen Kyu du uebst...  \
+            Dann frag mich nach einer Technik... \
+            Wenn es dir zu schnell geht, wiederhole ich die Technik auch gerne für dich...' 
+    card_text = 'Ich helfe dir gerne bei der Vorbereitung für deine nächste Kyu-Prüfung, '
+    card_text += 'indem ich dir zufällig Techniken aus der Prüfungsordnung ansage. '
+    card_text += 'Am besten sagst du mir gleich, für welchen Kyu du übst. '
+    card_text += 'Dann frag mich nach einer zufälligen, nächsten Technik. '
+    card_text += 'Wenn es dir zu schnell geht, wiederhole ich die Technik auch gerne für dich. '
+    reprompt_text = 'TODO'
+    sessionAttributes = {}
+    should_end_session = False
+    return build_response(sessionAttributes, build_speechlet_response( \
+                            output, card_text, reprompt_text, should_end_session))
+
 def random_technique(user, user_tab, number=1):
     
     #set level by user profile
@@ -562,19 +578,24 @@ def random_technique(user, user_tab, number=1):
     for t in enumerate(test_techniques_set):
         output += ' '.join(map(lambda x: terms[x]['speak'], t[1][:tmpEnd])) + '... '
         card_text += ' '.join(t[1][:tmpEnd]) + '\n '
+        print(t[1])
         last_technique = t[1]
     
-    #store last technique in db
-    user_tab.update_item(
-        Key={
-            'userId': user['userId']
-        },
-        UpdateExpression='set lastTechnique = :t',
-        ExpressionAttributeValues={
-            ':t': last_technique
-        },
-        ReturnValues='UPDATED_NEW'
+    try:
+        #store last technique in db
+        user_tab.update_item(
+            Key={
+                'userId': user['userId']
+            },
+            UpdateExpression='set lastTechnique = :t',
+            ExpressionAttributeValues={
+                ':t': last_technique
+            },
+            ReturnValues='UPDATED_NEW'
         )
+    except:
+        print('Database error: Could not update lastTechnique')
+
     
     reprompt_text = 'TODO'
     sessionAttributes = {}
@@ -686,20 +707,19 @@ def lambda_handler(event, context):
     except:
         print('Database error: Could not update lastUsed')
             
-
-    print(user)
-    
-    #event['session']['new'] 
     if event['request']['type'] == "LaunchRequest":
         return welcome_reply()
     elif event['request']['type'] == "IntentRequest":
-        if event['request']['intent']['name'] == 'levelSetzen':
+        if event['request']['intent']['name'] == 'LevelSetzenIntent':
             return set_level(event['request']['intent'], user, user_tab)
-        elif event['request']['intent']['name'] == 'technik':
+        elif event['request']['intent']['name'] == 'TechnikIntent':
             return random_technique(user, user_tab)
-        elif event['request']['intent']['name'] == 'wiederholen':
+        elif event['request']['intent']['name'] == 'AMAZON.RepeatIntent':
             return repeat_technique(user, user_tab)
-        elif event['request']['intent']['name'] == 'AMAZON.StopIntent':
+        elif event['request']['intent']['name'] == 'AMAZON.HelpIntent':
+            return help_reply()
+        elif event['request']['intent']['name'] == 'AMAZON.StopIntent' \
+                or event['request']['intent']['name'] == 'AMAZON.CancelIntent':
             return leave_reply()
         else:
             return default_reply()
