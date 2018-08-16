@@ -695,12 +695,21 @@ def lambda_handler(event, context):
     ddb = boto3.resource('dynamodb')
     user_tab = ddb.Table('aikido_users')
     
-    #get userId
+    #try to get userId for existing users
     try:
         user = user_tab.get_item(Key = {'userId': userId})['Item']
-    except:
-        print('Database error: Could not find user ' + userId)
-        user = {'id': '-1', 'name': 'Unbekannter'}
+        
+    #handle request for non-existing users (or in error case: not found users)
+    except: 
+        
+        try:
+            user = user_tab.put_item(Item={'userId': userId})
+            return help_reply()
+    
+        #display error
+        except:
+            print('Database error: Could not add user ' + userId)
+  
 
     #update lastUsed to delete obsolete accounts
     currentTimestamp = datetime.utcnow().isoformat()
@@ -738,5 +747,5 @@ def lambda_handler(event, context):
         return leave_reply()
     else:
         return default_reply()
-
-#eof    
+   
+#eof 
