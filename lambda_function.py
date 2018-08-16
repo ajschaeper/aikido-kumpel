@@ -538,12 +538,12 @@ def leave_reply():
 
 def help_reply():
     
-    output = 'Ich helfe dir gerne bei der Vorbereitung für deine naechste Kyu-Pruefung,  \
+    output = 'Howdy! Ich helfe dir gerne bei der Vorbereitung für deine naechste Kyu-Pruefung,  \
             indem ich dir zufaellig Techniken aus der Pruefungsordnung fuer den fuenften bis zum ersten Kyu ansage... \
             Am besten sagst du mir gleich, für welchen Kyu du uebst...  \
             Dann frag mich nach einer Technik... \
             Wenn es dir zu schnell geht, wiederhole ich die Technik auch gerne für dich...' 
-    card_text = 'Ich helfe dir gerne bei der Vorbereitung für deine nächste Kyu-Prüfung, '
+    card_text = 'Howdy :-) Ich helfe dir gerne bei der Vorbereitung für deine nächste Kyu-Prüfung, '
     card_text += 'indem ich dir zufällig Techniken aus der Prüfungsordnung für den fünften bis zum ersten Kyu ansage. '
     card_text += 'Am besten sagst du mir gleich, für welchen Kyu du übst. '
     card_text += 'Dann frag mich nach einer zufälligen, nächsten Technik. '
@@ -747,5 +747,5 @@ def lambda_handler(event, context):
         return leave_reply()
     else:
         return default_reply()
-   
-#eof 
+    
+#eof
