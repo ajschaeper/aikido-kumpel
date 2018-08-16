@@ -516,7 +516,7 @@ def welcome_reply():
 
     #Let's practice in Japanese
     output = "Onagaeschi mass"
-    card_text = "Onegaishimasu!"
+    card_text = "Onegaishimasu (DEU: Lass uns zusammen üben)"
     
     reprompt_text = 'TODO'
     sessionAttributes = {}
@@ -528,7 +528,7 @@ def welcome_reply():
 def leave_reply():
 
     output = "Dohmo arigatoh"
-    card_text = "Domo arigato gozaimasu"
+    card_text = "Domo arigato gozaimasu (DEU: Herzlichsten Dank)"
     
     reprompt_text = 'TODO'
     sessionAttributes = {}
