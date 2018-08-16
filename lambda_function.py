@@ -12,7 +12,7 @@ import boto3
 #to set timestamps
 from datetime import datetime
 
-appName = 'Aikido Köln Prüfungstrainer'
+appName = 'Aikido Kumpel'
 
 #enable Japanese pronunciation
 terms = {
