@@ -14,6 +14,7 @@ from datetime import datetime
 
 appName = 'Aikido Köln Prüfungstrainer'
 
+#enable Japanese pronunciation
 terms = {
     ### MISC ###
     '': {
@@ -199,6 +200,7 @@ terms = {
     },
 }
 
+#techniques from fifth to first kyu
 techniques = [
     #5 0-10 (11)
     ['suwari waza', 'ryote dori', 'kokyu ho', ''],
@@ -462,6 +464,7 @@ techniques = [
     ['tachi waza', 'ushiro katate dori kubi shime', 'shiho nage', 'ura']
 ]
 
+#indices in techniques arrays that indicate the part of the syllabus for a repective kyu
 test_techniques = [
     [163,255],
     [89,163],
@@ -470,6 +473,7 @@ test_techniques = [
     [0, 11]
 ]
 
+#helper function to build the speedchlet piece for a DTO for the Alexa interface 
 def build_speechlet_response(output, card_text, repromt_text, should_end_session): 
      return {
         'outputSpeech': {
@@ -488,6 +492,7 @@ def build_speechlet_response(output, card_text, repromt_text, should_end_session
         'shouldEndSession': should_end_session
     }
         
+#helper function to build DTO to return to the Alexa interface 
 def build_response(sessionAttributes, speechlet_response):
         return {
             'version': '1.0',
@@ -495,6 +500,7 @@ def build_response(sessionAttributes, speechlet_response):
             'response': speechlet_response
         }
 
+#default reply
 def default_reply():
     
     output = 'Entschuldige, das kann ich noch nicht...'
@@ -505,8 +511,10 @@ def default_reply():
     return build_response(sessionAttributes, build_speechlet_response( \
                             output, card_text, reprompt_text, should_end_session))
 
+#Welcome message
 def welcome_reply():
 
+    #Let's practice in Japanese
     output = "Onagaeschi mass"
     card_text = "Onegaishimasu!"
     
@@ -516,6 +524,7 @@ def welcome_reply():
     return build_response(sessionAttributes, build_speechlet_response( \
                         output, card_text, reprompt_text, should_end_session))
 
+#Message for stopping or quitting
 def leave_reply():
 
     output = "Dohmo arigatoh"
@@ -530,12 +539,12 @@ def leave_reply():
 def help_reply():
     
     output = 'Ich helfe dir gerne bei der Vorbereitung für deine naechste Kyu-Pruefung,  \
-            indem ich dir zufaellig Techniken aus der Pruefungsordnung ansage... \
+            indem ich dir zufaellig Techniken aus der Pruefungsordnung fuer den fuenften bis zum ersten Kyu ansage... \
             Am besten sagst du mir gleich, für welchen Kyu du uebst...  \
             Dann frag mich nach einer Technik... \
             Wenn es dir zu schnell geht, wiederhole ich die Technik auch gerne für dich...' 
     card_text = 'Ich helfe dir gerne bei der Vorbereitung für deine nächste Kyu-Prüfung, '
-    card_text += 'indem ich dir zufällig Techniken aus der Prüfungsordnung ansage. '
+    card_text += 'indem ich dir zufällig Techniken aus der Prüfungsordnung für den fünften bis zum ersten Kyu ansage. '
     card_text += 'Am besten sagst du mir gleich, für welchen Kyu du übst. '
     card_text += 'Dann frag mich nach einer zufälligen, nächsten Technik. '
     card_text += 'Wenn es dir zu schnell geht, wiederhole ich die Technik auch gerne für dich. '
@@ -545,6 +554,7 @@ def help_reply():
     return build_response(sessionAttributes, build_speechlet_response( \
                             output, card_text, reprompt_text, should_end_session))
 
+#get random technique(s)
 def random_technique(user, user_tab, number=1):
     
     #set level by user profile
@@ -603,7 +613,7 @@ def random_technique(user, user_tab, number=1):
     return build_response(sessionAttributes, build_speechlet_response( \
                             output, card_text, reprompt_text, should_end_session))
                             
-                            
+#repeat last technique
 def repeat_technique(user, user_tab):
     output = ''
     card_text = ''
@@ -642,6 +652,7 @@ def repeat_technique(user, user_tab):
     return build_response(sessionAttributes, build_speechlet_response( \
                             output, card_text, reprompt_text, should_end_session))
     
+#set kyu grade level you train for
 def set_level(intent, user, user_tab):
     
     levelNames = ['ersten', 'zweiten', 'dritten', 'vierten', 'fuenften']
@@ -674,7 +685,7 @@ def set_level(intent, user, user_tab):
     return build_response(sessionAttributes, build_speechlet_response( \
                         output, card_text, reprompt_text, should_end_session))
     
-
+#our beloved entry point function
 def lambda_handler(event, context):
 
     print(event)
@@ -727,4 +738,5 @@ def lambda_handler(event, context):
         return leave_reply()
     else:
         return default_reply()
-    
+
+#eof    
